@@ -22,7 +22,7 @@ class TrackerApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Tracker',
+      title: 'Stop the Bleeding!',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
@@ -365,19 +365,13 @@ class DashboardPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Tracker',
+              'Stop the Bleeding!',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.w700,
                 letterSpacing: -0.5,
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              'Stop the Bleeding!',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(color: Colors.white38),
-            ),
             const SizedBox(height: 32),
             GridView.builder(
               shrinkWrap: true,

@@ -1,26 +1,6 @@
-# Tracker – Stop the Bleeding!
+# Stop the Bleeding!
 
-Fixkosten-App für Flutter. Eine Datei, eine Tabelle, kein Overhead.
-
----
-
-## Flutter-Pakete
-
-Folgende Pakete in `pubspec.yaml` unter `dependencies` eintragen:
-
-```yaml
-dependencies:
-   flutter:
-      sdk: flutter
-   sqflite: ^2.3.3
-   path: ^1.9.0
-```
-
-Dann:
-
-```bash
-flutter pub get
-```
+Fixkosten-App für Flutter auf Android und iOS
 
 ---
 
@@ -50,37 +30,6 @@ Dann:
 dart run flutter_launcher_icons
 ```
 
-Ein komplett weißes PNG reicht – Hauptsache nicht Flutter-Standard.
-
----
-
-### 2. App-Name
-
-In `android/app/src/main/AndroidManifest.xml`:
-
-```xml
-android:label="Tracker"
-```
-
-In `ios/Runner/Info.plist`:
-
-```xml
-<key>CFBundleDisplayName</key>
-<string>Tracker</string>
-```
-
----
-
-### 3. Android – minimale SDK-Version
-
-In `android/app/build.gradle`:
-
-```gradle
-minSdkVersion 21
-```
-
-sqflite benötigt mindestens SDK 21.
-
 ---
 
 ## Datenbank
@@ -92,8 +41,6 @@ sqflite benötigt mindestens SDK 21.
 ---
 
 ## Architektur
-
-Alles in `main.dart`, bewusst flach gehalten:
 
 | Klasse          | Zweck                                                    |
 | --------------- | -------------------------------------------------------- |
@@ -117,11 +64,3 @@ Alles in `main.dart`, bewusst flach gehalten:
 | Quartalsposten       | Rohsumme aller Einträge mit Intervall „Quartalsweise"               |
 | Jahresposten         | Rohsumme aller Einträge mit Intervall „Jährlich"                    |
 | Einträge gesamt      | Anzahl aktiver Fixkostenposten                                      |
-
----
-
-## Bekannte Einschränkungen / spätere Todos
-
-- iOS benötigt keine weiteren Permissions für sqflite.
-- Kein Export, kein Backup – bewusst weggelassen.
-- Das App-Icon muss manuell gesetzt werden (siehe oben).
