@@ -282,7 +282,8 @@ class _HomeShellState extends State<HomeShell> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => EntrySheet(item: item, onSave: _state.save),
+      builder: (_) =>
+          EntrySheet(item: item, onSave: _state.save, onDelete: _state.remove),
     );
   }
 }
@@ -320,11 +321,11 @@ class DashboardPage extends StatelessWidget {
         accent: const Color(0xFFFF7043),
       ),
       _KPI(
-        label: 'Monatliche Belastung',
-        value: _fmt(totalMonthly),
-        subtitle: 'normalisiert',
-        icon: Icons.calendar_month,
-        accent: const Color(0xFFEF5350),
+        label: 'Jahresposten',
+        value: _fmt(yearlyOnly),
+        subtitle: 'Rohsumme / Jahr',
+        icon: Icons.event_repeat,
+        accent: const Color(0xFF66BB6A),
       ),
       _KPI(
         label: 'Quartalsmäßige Belastung',
@@ -341,18 +342,18 @@ class DashboardPage extends StatelessWidget {
         accent: const Color(0xFF26C6DA),
       ),
       _KPI(
+        label: 'Monatliche Belastung',
+        value: _fmt(totalMonthly),
+        subtitle: 'normalisiert',
+        icon: Icons.calendar_month,
+        accent: const Color(0xFFEF5350),
+      ),
+      _KPI(
         label: 'Monatliche Posten',
         value: _fmt(monthlyOnly),
         subtitle: 'Rohsumme / Monat',
         icon: Icons.repeat,
         accent: const Color(0xFF42A5F5),
-      ),
-      _KPI(
-        label: 'Jahresposten',
-        value: _fmt(yearlyOnly),
-        subtitle: 'Rohsumme / Jahr',
-        icon: Icons.event_repeat,
-        accent: const Color(0xFF66BB6A),
       ),
     ];
 
@@ -504,7 +505,6 @@ class ListPage extends StatelessWidget {
           return _EntryTile(
             item: item,
             onEdit: () => _openSheet(context, item),
-            onDelete: () => _confirmDelete(context, item),
           );
         },
       ),
@@ -516,33 +516,8 @@ class ListPage extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => EntrySheet(item: item, onSave: onSave),
-    );
-  }
-
-  void _confirmDelete(BuildContext context, Fixkosten item) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: const Text('Eintrag löschen'),
-        content: Text('„${item.name}" wirklich löschen?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Abbrechen'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              onDelete(item.id!);
-            },
-            child: const Text(
-              'Löschen',
-              style: TextStyle(color: Colors.redAccent),
-            ),
-          ),
-        ],
-      ),
+      builder: (_) =>
+          EntrySheet(item: item, onSave: onSave, onDelete: onDelete),
     );
   }
 }
@@ -550,12 +525,10 @@ class ListPage extends StatelessWidget {
 class _EntryTile extends StatelessWidget {
   final Fixkosten item;
   final VoidCallback onEdit;
-  final VoidCallback onDelete;
 
   const _EntryTile({
     required this.item,
     required this.onEdit,
-    required this.onDelete,
   });
 
   @override
@@ -565,34 +538,39 @@ class _EntryTile extends StatelessWidget {
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-        title: Text(
-          item.name,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (item.description.isNotEmpty)
-              Text(
-                item.description,
-                style: const TextStyle(color: Colors.white54, fontSize: 12),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-            const SizedBox(height: 4),
-            Row(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onEdit,
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 6,
+            ),
+            title: Text(
+              item.name,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _Chip(item.interval.label),
+                if (item.description.isNotEmpty)
+                  Text(
+                    item.description,
+                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    _Chip(item.interval.label),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
+            trailing: Text(
               '${item.amount.toStringAsFixed(2)} €',
               style: const TextStyle(
                 fontWeight: FontWeight.w700,
@@ -600,24 +578,7 @@ class _EntryTile extends StatelessWidget {
                 color: Color(0xFFEF5350),
               ),
             ),
-            const SizedBox(width: 8),
-            PopupMenuButton<String>(
-              onSelected: (v) {
-                if (v == 'edit') onEdit();
-                if (v == 'delete') onDelete();
-              },
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'edit', child: Text('Bearbeiten')),
-                PopupMenuItem(
-                  value: 'delete',
-                  child: Text(
-                    'Löschen',
-                    style: TextStyle(color: Colors.redAccent),
-                  ),
-                ),
-              ],
-            ),
-          ],
+          ),
         ),
       ),
     );
@@ -652,8 +613,14 @@ class _Chip extends StatelessWidget {
 class EntrySheet extends StatefulWidget {
   final Fixkosten? item;
   final Future<void> Function(Fixkosten) onSave;
+  final Future<void> Function(int)? onDelete;
 
-  const EntrySheet({super.key, this.item, required this.onSave});
+  const EntrySheet({
+    super.key,
+    this.item,
+    required this.onSave,
+    this.onDelete,
+  });
 
   @override
   State<EntrySheet> createState() => _EntrySheetState();
@@ -700,96 +667,140 @@ class _EntrySheetState extends State<EntrySheet> {
     if (mounted) Navigator.pop(context);
   }
 
+  Future<void> _delete() async {
+    final currentItem = widget.item;
+    if (currentItem == null || currentItem.id == null || widget.onDelete == null) {
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Eintrag löschen'),
+        content: Text('„${currentItem.name}" wirklich löschen?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Abbrechen'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text(
+              'Löschen',
+              style: TextStyle(color: Colors.redAccent),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _saving = true);
+    await widget.onDelete!(currentItem.id!);
+    if (mounted) Navigator.pop(context);
+  }
+
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.item != null;
-    return Padding(
-      padding: EdgeInsets.only(
-        left: 20,
-        right: 20,
-        top: 24,
-        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Text(
-                  isEdit ? 'Eintrag bearbeiten' : 'Neuer Eintrag',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const Spacer(),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            _Field(
-              controller: _name,
-              label: 'Name',
-              validator: (v) =>
-                  (v == null || v.trim().isEmpty) ? 'Pflichtfeld' : null,
-            ),
-            const SizedBox(height: 14),
-            _Field(controller: _desc, label: 'Beschreibung', maxLines: 2),
-            const SizedBox(height: 14),
-            _Field(
-              controller: _amount,
-              label: 'Betrag (€)',
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: 20,
+          right: 20,
+          top: 24,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    isEdit ? 'Eintrag bearbeiten' : 'Neuer Eintrag',
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const Spacer(),
+                  if (isEdit && widget.onDelete != null)
+                    IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: 'Löschen',
+                      color: Colors.redAccent,
+                      onPressed: _saving ? null : _delete,
+                    ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: _saving ? null : () => Navigator.pop(context),
+                  ),
+                ],
               ),
-              validator: (v) {
-                if (v == null || v.trim().isEmpty) return 'Pflichtfeld';
-                final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
-                if (parsed == null || parsed <= 0) return 'Ungültiger Betrag';
-                return null;
-              },
-            ),
-            const SizedBox(height: 14),
-            DropdownButtonFormField<Interval_>(
-              value: _interval,
-              decoration: InputDecoration(
-                labelText: 'Intervall',
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                filled: true,
+              const SizedBox(height: 20),
+              _Field(
+                controller: _name,
+                label: 'Name',
+                validator: (v) =>
+                    (v == null || v.trim().isEmpty) ? 'Pflichtfeld' : null,
               ),
-              items: Interval_.values
-                  .map((i) => DropdownMenuItem(value: i, child: Text(i.label)))
-                  .toList(),
-              onChanged: (v) => setState(() => _interval = v!),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: _saving ? null : _submit,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
+              const SizedBox(height: 14),
+              _Field(controller: _desc, label: 'Beschreibung', maxLines: 2),
+              const SizedBox(height: 14),
+              _Field(
+                controller: _amount,
+                label: 'Betrag (€)',
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                validator: (v) {
+                  if (v == null || v.trim().isEmpty) return 'Pflichtfeld';
+                  final parsed = double.tryParse(v.trim().replaceAll(',', '.'));
+                  if (parsed == null || parsed <= 0) return 'Ungültiger Betrag';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 14),
+              DropdownButtonFormField<Interval_>(
+                value: _interval,
+                decoration: InputDecoration(
+                  labelText: 'Intervall',
+                  border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
+                  filled: true,
                 ),
-                child: _saving
-                    ? const SizedBox(
-                        height: 18,
-                        width: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(isEdit ? 'Speichern' : 'Hinzufügen'),
+                items: Interval_.values
+                    .map((i) => DropdownMenuItem(value: i, child: Text(i.label)))
+                    .toList(),
+                onChanged: (v) => setState(() => _interval = v!),
               ),
-            ),
-          ],
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: _saving ? null : _submit,
+                  style: FilledButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: _saving
+                      ? const SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(isEdit ? 'Speichern' : 'Hinzufügen'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
