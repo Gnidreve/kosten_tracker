@@ -298,6 +298,7 @@ class DashboardPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final totalMonthly = items.fold<double>(0, (s, i) => s + i.monthlyAmount);
+    final totalQuarterly = totalMonthly * 3;
     final totalYearly = totalMonthly * 12;
 
     final monthlyOnly = items
@@ -310,16 +311,7 @@ class DashboardPage extends StatelessWidget {
         .where((i) => i.interval == Interval_.yearly)
         .fold<double>(0, (s, i) => s + i.amount);
 
-    final count = items.length;
-
     final kpis = [
-      _KPI(
-        label: 'Monatliche Belastung',
-        value: _fmt(totalMonthly),
-        subtitle: 'normalisiert',
-        icon: Icons.calendar_month,
-        accent: const Color(0xFFEF5350),
-      ),
       _KPI(
         label: 'Jährliche Belastung',
         value: _fmt(totalYearly),
@@ -328,11 +320,18 @@ class DashboardPage extends StatelessWidget {
         accent: const Color(0xFFFF7043),
       ),
       _KPI(
-        label: 'Monatliche Posten',
-        value: _fmt(monthlyOnly),
-        subtitle: 'Rohsumme / Monat',
-        icon: Icons.repeat,
-        accent: const Color(0xFF42A5F5),
+        label: 'Monatliche Belastung',
+        value: _fmt(totalMonthly),
+        subtitle: 'normalisiert',
+        icon: Icons.calendar_month,
+        accent: const Color(0xFFEF5350),
+      ),
+      _KPI(
+        label: 'Quartalsmäßige Belastung',
+        value: _fmt(totalQuarterly),
+        subtitle: 'normalisiert',
+        icon: Icons.calendar_view_month,
+        accent: const Color(0xFF7E57C2),
       ),
       _KPI(
         label: 'Quartalsposten',
@@ -342,19 +341,18 @@ class DashboardPage extends StatelessWidget {
         accent: const Color(0xFF26C6DA),
       ),
       _KPI(
+        label: 'Monatliche Posten',
+        value: _fmt(monthlyOnly),
+        subtitle: 'Rohsumme / Monat',
+        icon: Icons.repeat,
+        accent: const Color(0xFF42A5F5),
+      ),
+      _KPI(
         label: 'Jahresposten',
         value: _fmt(yearlyOnly),
         subtitle: 'Rohsumme / Jahr',
         icon: Icons.event_repeat,
         accent: const Color(0xFF66BB6A),
-      ),
-      _KPI(
-        label: 'Einträge gesamt',
-        value: '$count',
-        subtitle: 'aktive Fixkosten',
-        icon: Icons.receipt_long,
-        accent: const Color(0xFFAB47BC),
-        isCurrency: false,
       ),
     ];
 
@@ -485,27 +483,31 @@ class ListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const Center(
-        child: Text(
-          'Noch keine Einträge.\nTippe auf + um zu starten.',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white38),
+      return const SafeArea(
+        child: Center(
+          child: Text(
+            'Noch keine Einträge.\nTippe auf + um zu starten.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.white38),
+          ),
         ),
       );
     }
 
-    return ListView.separated(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
-      itemCount: items.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
-      itemBuilder: (context, i) {
-        final item = items[i];
-        return _EntryTile(
-          item: item,
-          onEdit: () => _openSheet(context, item),
-          onDelete: () => _confirmDelete(context, item),
-        );
-      },
+    return SafeArea(
+      child: ListView.separated(
+        padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
+        itemCount: items.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        itemBuilder: (context, i) {
+          final item = items[i];
+          return _EntryTile(
+            item: item,
+            onEdit: () => _openSheet(context, item),
+            onDelete: () => _confirmDelete(context, item),
+          );
+        },
+      ),
     );
   }
 
@@ -583,11 +585,6 @@ class _EntryTile extends StatelessWidget {
             Row(
               children: [
                 _Chip(item.interval.label),
-                const SizedBox(width: 8),
-                _Chip(
-                  '≈ ${(item.monthlyAmount).toStringAsFixed(2)} € / Mo.',
-                  color: Colors.white24,
-                ),
               ],
             ),
           ],
