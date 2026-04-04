@@ -1,6 +1,34 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as p;
+
+const _cream = Color(0xFFF6EDC3);
+const _paper = Color(0xFFFFF9E6);
+const _ink = Color(0xFF2F2118);
+const _flameRed = Color(0xFFFF3B1F);
+const _ember = Color(0xFFFFC928);
+const _moneyGreen = Color(0xFF89DA35);
+
+BoxDecoration _panelDecoration(
+  Color color, {
+  Color borderColor = _ink,
+  double radius = 22,
+  Offset shadowOffset = const Offset(0, 6),
+}) {
+  return BoxDecoration(
+    color: color,
+    borderRadius: BorderRadius.circular(radius),
+    border: Border.all(color: borderColor, width: 3),
+    boxShadow: [
+      BoxShadow(
+        color: borderColor.withValues(alpha: 0.18),
+        offset: shadowOffset,
+        blurRadius: 0,
+      ),
+    ],
+  );
+}
 
 // ─────────────────────────────────────────────
 // ENTRY POINT
@@ -21,16 +49,117 @@ class TrackerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final baseTextTheme = GoogleFonts.spaceGroteskTextTheme(
+      ThemeData.light().textTheme,
+    ).apply(bodyColor: _ink, displayColor: _ink);
+
     return MaterialApp(
       title: 'Stop the Bleeding!',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF1A1A2E),
-          brightness: Brightness.dark,
+        colorScheme: const ColorScheme.light(
+          primary: _flameRed,
+          secondary: _moneyGreen,
+          surface: _paper,
+          onSurface: _ink,
+          error: _flameRed,
         ),
         useMaterial3: true,
-        fontFamily: 'sans-serif',
+        scaffoldBackgroundColor: _cream,
+        canvasColor: _cream,
+        dialogTheme: DialogThemeData(
+          backgroundColor: _paper,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: const BorderSide(color: _ink, width: 3),
+          ),
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.transparent,
+          surfaceTintColor: Colors.transparent,
+          modalBackgroundColor: Colors.transparent,
+        ),
+        navigationBarTheme: NavigationBarThemeData(
+          backgroundColor: _cream,
+          indicatorColor: _moneyGreen,
+          labelTextStyle: WidgetStateProperty.resolveWith((states) {
+            return TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w900,
+              color: states.contains(WidgetState.selected) ? _ink : _ink,
+            );
+          }),
+          iconTheme: WidgetStateProperty.resolveWith((states) {
+            return IconThemeData(
+              color: _ink,
+              size: states.contains(WidgetState.selected) ? 24 : 20,
+            );
+          }),
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
+          height: 54,
+        ),
+        floatingActionButtonTheme: FloatingActionButtonThemeData(
+          backgroundColor: _flameRed,
+          foregroundColor: _paper,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: const BorderSide(color: _ink, width: 3),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: _paper,
+          labelStyle: const TextStyle(color: _ink, fontWeight: FontWeight.w700),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _ink, width: 3),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _ink, width: 3),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _flameRed, width: 3),
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _flameRed, width: 3),
+          ),
+          focusedErrorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: _flameRed, width: 3),
+          ),
+        ),
+        textTheme: baseTextTheme.copyWith(
+          headlineMedium: GoogleFonts.bungee(
+            fontSize: 31,
+            fontWeight: FontWeight.w400,
+            color: _ink,
+            height: 0.95,
+          ),
+          titleLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: _ink,
+          ),
+          bodyLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: _ink,
+          ),
+          bodyMedium: GoogleFonts.spaceGrotesk(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: _ink,
+          ),
+          labelLarge: GoogleFonts.spaceGrotesk(
+            fontSize: 14,
+            fontWeight: FontWeight.w800,
+            color: _ink,
+          ),
+        ),
       ),
       home: const HomeShell(),
     );
@@ -256,21 +385,29 @@ class _HomeShellState extends State<HomeShell> {
                   child: const Icon(Icons.add),
                 )
               : null,
-          bottomNavigationBar: NavigationBar(
-            selectedIndex: _tab,
-            onDestinationSelected: (i) => setState(() => _tab = i),
-            destinations: const [
-              NavigationDestination(
-                icon: Icon(Icons.dashboard_outlined),
-                selectedIcon: Icon(Icons.dashboard),
-                label: 'Übersicht',
-              ),
-              NavigationDestination(
-                icon: Icon(Icons.list_outlined),
-                selectedIcon: Icon(Icons.list),
-                label: 'Liste',
-              ),
-            ],
+          bottomNavigationBar: Container(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+            decoration: _panelDecoration(
+              _paper,
+              radius: 28,
+              shadowOffset: const Offset(0, 4),
+            ),
+            child: NavigationBar(
+              selectedIndex: _tab,
+              onDestinationSelected: (i) => setState(() => _tab = i),
+              destinations: const [
+                NavigationDestination(
+                  icon: Icon(Icons.dashboard_outlined),
+                  selectedIcon: Icon(Icons.dashboard),
+                  label: 'Übersicht',
+                ),
+                NavigationDestination(
+                  icon: Icon(Icons.list_outlined),
+                  selectedIcon: Icon(Icons.list),
+                  label: 'Liste',
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -363,14 +500,19 @@ class DashboardPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Stop the Bleeding!',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
+            SizedBox(
+              width: double.infinity,
+              child: FittedBox(
+                alignment: Alignment.centerLeft,
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  'Stop the Bleeding!',
+                  style: Theme.of(
+                    context,
+                  ).textTheme.headlineMedium?.copyWith(letterSpacing: -1.1),
+                ),
               ),
             ),
-            const SizedBox(height: 4),
             const SizedBox(height: 32),
             GridView.builder(
               shrinkWrap: true,
@@ -379,7 +521,7 @@ class DashboardPage extends StatelessWidget {
                 crossAxisCount: 2,
                 mainAxisSpacing: 14,
                 crossAxisSpacing: 14,
-                childAspectRatio: 1.15,
+                childAspectRatio: 0.84,
               ),
               itemCount: kpis.length,
               itemBuilder: (_, i) => _KPICard(kpi: kpis[i]),
@@ -400,7 +542,6 @@ class _KPI {
   final String subtitle;
   final IconData icon;
   final Color accent;
-  final bool isCurrency;
 
   const _KPI({
     required this.label,
@@ -408,7 +549,6 @@ class _KPI {
     required this.subtitle,
     required this.icon,
     required this.accent,
-    this.isCurrency = true,
   });
 }
 
@@ -418,46 +558,68 @@ class _KPICard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cardColor = Color.alphaBlend(
+      kpi.accent.withValues(alpha: 0.18),
+      _paper,
+    );
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: kpi.accent.withOpacity(0.25), width: 1),
-      ),
-      padding: const EdgeInsets.all(16),
+      decoration: _panelDecoration(cardColor),
+      padding: const EdgeInsets.all(14),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(kpi.icon, size: 18, color: kpi.accent),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: _panelDecoration(
+                  kpi.accent,
+                  radius: 14,
+                  shadowOffset: const Offset(0, 2),
+                ),
+                child: Icon(kpi.icon, size: 18, color: _ink),
+              ),
               const Spacer(),
             ],
           ),
-          const Spacer(),
+          const SizedBox(height: 14),
           Text(
             kpi.value,
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-              color: kpi.accent,
-              letterSpacing: -0.3,
+              fontSize: 21,
+              fontWeight: FontWeight.w900,
+              color: _ink,
+              letterSpacing: -1.0,
             ),
           ),
-          const SizedBox(height: 2),
-          Text(
-            kpi.label,
-            style: const TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-              color: Colors.white70,
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: _panelDecoration(
+              kpi.accent,
+              radius: 14,
+              shadowOffset: const Offset(0, 2),
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+            child: Text(
+              kpi.label,
+              style: const TextStyle(
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                color: _ink,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.fade,
+            ),
           ),
+          const SizedBox(height: 8),
           Text(
             kpi.subtitle,
-            style: const TextStyle(fontSize: 10, color: Colors.white38),
+            style: TextStyle(
+              fontSize: 10,
+              color: _ink.withValues(alpha: 0.72),
+              fontWeight: FontWeight.w700,
+            ),
           ),
         ],
       ),
@@ -484,12 +646,21 @@ class ListPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (items.isEmpty) {
-      return const SafeArea(
+      return SafeArea(
         child: Center(
-          child: Text(
-            'Noch keine Einträge.\nTippe auf + um zu starten.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.white38),
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(24),
+            decoration: _panelDecoration(_paper),
+            child: const Text(
+              'Noch keine Einträge.\nTippe auf + um zu starten.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: _ink,
+                fontSize: 18,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
           ),
         ),
       );
@@ -499,7 +670,7 @@ class ListPage extends StatelessWidget {
       child: ListView.separated(
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 100),
         itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(height: 8),
+        separatorBuilder: (_, index) => const SizedBox(height: 8),
         itemBuilder: (context, i) {
           final item = items[i];
           return _EntryTile(
@@ -526,22 +697,16 @@ class _EntryTile extends StatelessWidget {
   final Fixkosten item;
   final VoidCallback onEdit;
 
-  const _EntryTile({
-    required this.item,
-    required this.onEdit,
-  });
+  const _EntryTile({required this.item, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(12),
-      ),
+      decoration: _panelDecoration(_paper, radius: 18),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(18),
           onTap: onEdit,
           child: ListTile(
             contentPadding: const EdgeInsets.symmetric(
@@ -558,24 +723,24 @@ class _EntryTile extends StatelessWidget {
                 if (item.description.isNotEmpty)
                   Text(
                     item.description,
-                    style: const TextStyle(color: Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                      color: _ink.withValues(alpha: 0.68),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 const SizedBox(height: 4),
-                Row(
-                  children: [
-                    _Chip(item.interval.label),
-                  ],
-                ),
+                Row(children: [_Chip(item.interval.label)]),
               ],
             ),
             trailing: Text(
               '${item.amount.toStringAsFixed(2)} €',
-              style: const TextStyle(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: Color(0xFFEF5350),
+              style: GoogleFonts.spaceGrotesk(
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: _flameRed,
               ),
             ),
           ),
@@ -587,20 +752,24 @@ class _EntryTile extends StatelessWidget {
 
 class _Chip extends StatelessWidget {
   final String label;
-  final Color color;
-  const _Chip(this.label, {this.color = Colors.white12});
+  const _Chip(this.label);
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(20),
+      decoration: _panelDecoration(
+        _moneyGreen,
+        radius: 999,
+        shadowOffset: const Offset(0, 2),
       ),
       child: Text(
         label,
-        style: const TextStyle(fontSize: 11, color: Colors.white70),
+        style: const TextStyle(
+          fontSize: 11,
+          color: _ink,
+          fontWeight: FontWeight.w900,
+        ),
       ),
     );
   }
@@ -615,12 +784,7 @@ class EntrySheet extends StatefulWidget {
   final Future<void> Function(Fixkosten) onSave;
   final Future<void> Function(int)? onDelete;
 
-  const EntrySheet({
-    super.key,
-    this.item,
-    required this.onSave,
-    this.onDelete,
-  });
+  const EntrySheet({super.key, this.item, required this.onSave, this.onDelete});
 
   @override
   State<EntrySheet> createState() => _EntrySheetState();
@@ -669,7 +833,9 @@ class _EntrySheetState extends State<EntrySheet> {
 
   Future<void> _delete() async {
     final currentItem = widget.item;
-    if (currentItem == null || currentItem.id == null || widget.onDelete == null) {
+    if (currentItem == null ||
+        currentItem.id == null ||
+        widget.onDelete == null) {
       return;
     }
 
@@ -681,13 +847,16 @@ class _EntrySheetState extends State<EntrySheet> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Abbrechen'),
+            child: const Text(
+              'Abbrechen',
+              style: TextStyle(color: _ink, fontWeight: FontWeight.w900),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
             child: const Text(
               'Löschen',
-              style: TextStyle(color: Colors.redAccent),
+              style: TextStyle(color: _flameRed, fontWeight: FontWeight.w900),
             ),
           ),
         ],
@@ -706,13 +875,15 @@ class _EntrySheetState extends State<EntrySheet> {
     final isEdit = widget.item != null;
     return SafeArea(
       top: false,
-      child: Padding(
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(10, 0, 10, 10),
         padding: EdgeInsets.only(
           left: 20,
           right: 20,
           top: 24,
           bottom: MediaQuery.of(context).viewInsets.bottom + 24,
         ),
+        decoration: _panelDecoration(_paper, radius: 28),
         child: Form(
           key: _formKey,
           child: Column(
@@ -723,21 +894,35 @@ class _EntrySheetState extends State<EntrySheet> {
                 children: [
                   Text(
                     isEdit ? 'Eintrag bearbeiten' : 'Neuer Eintrag',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const Spacer(),
                   if (isEdit && widget.onDelete != null)
-                    IconButton(
-                      icon: const Icon(Icons.delete_outline),
-                      tooltip: 'Löschen',
-                      color: Colors.redAccent,
-                      onPressed: _saving ? null : _delete,
+                    Container(
+                      margin: const EdgeInsets.only(right: 4),
+                      decoration: _panelDecoration(
+                        const Color(0xFFFFD5CF),
+                        radius: 14,
+                        shadowOffset: const Offset(0, 2),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: 'Löschen',
+                        color: _flameRed,
+                        onPressed: _saving ? null : _delete,
+                      ),
                     ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: _saving ? null : () => Navigator.pop(context),
+                  Container(
+                    decoration: _panelDecoration(
+                      _ember,
+                      radius: 14,
+                      shadowOffset: const Offset(0, 2),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.close),
+                      color: _ink,
+                      onPressed: _saving ? null : () => Navigator.pop(context),
+                    ),
                   ),
                 ],
               ),
@@ -766,16 +951,17 @@ class _EntrySheetState extends State<EntrySheet> {
               ),
               const SizedBox(height: 14),
               DropdownButtonFormField<Interval_>(
-                value: _interval,
-                decoration: InputDecoration(
-                  labelText: 'Intervall',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  filled: true,
+                initialValue: _interval,
+                decoration: const InputDecoration(labelText: 'Intervall'),
+                dropdownColor: _paper,
+                style: const TextStyle(
+                  color: _ink,
+                  fontWeight: FontWeight.w800,
                 ),
                 items: Interval_.values
-                    .map((i) => DropdownMenuItem(value: i, child: Text(i.label)))
+                    .map(
+                      (i) => DropdownMenuItem(value: i, child: Text(i.label)),
+                    )
                     .toList(),
                 onChanged: (v) => setState(() => _interval = v!),
               ),
@@ -785,18 +971,27 @@ class _EntrySheetState extends State<EntrySheet> {
                 child: FilledButton(
                   onPressed: _saving ? null : _submit,
                   style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    backgroundColor: _moneyGreen,
+                    foregroundColor: _ink,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(18),
+                      side: const BorderSide(color: _ink, width: 3),
                     ),
                   ),
                   child: _saving
                       ? const SizedBox(
                           height: 18,
                           width: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: _ink,
+                          ),
                         )
-                      : Text(isEdit ? 'Speichern' : 'Hinzufügen'),
+                      : Text(
+                          isEdit ? 'Speichern' : 'Hinzufügen',
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
                 ),
               ),
             ],
@@ -829,11 +1024,8 @@ class _Field extends StatelessWidget {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
-        filled: true,
-      ),
+      style: const TextStyle(color: _ink, fontWeight: FontWeight.w800),
+      decoration: InputDecoration(labelText: label),
     );
   }
 }
